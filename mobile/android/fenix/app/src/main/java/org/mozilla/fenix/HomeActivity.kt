@@ -25,6 +25,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.WindowManager.LayoutParams.FLAG_SECURE
 import androidx.activity.BackEventCompat
 import androidx.annotation.CallSuper
@@ -37,6 +38,7 @@ import androidx.core.net.toUri
 import androidx.core.os.BundleCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.text.layoutDirection
+import androidx.core.view.ViewCompat
 import androidx.core.view.doOnLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -389,6 +391,29 @@ open class HomeActivity : LocaleAwareAppCompatActivity(), NavHostActivity, Crash
     }
 
     private var inflater: LayoutInflater? = null
+    private val browserImeInsetsViews = mutableSetOf<View>()
+    private var browserSoftInputMode: Int? = null
+
+    internal fun setBrowserImeInsetsHandlingEnabled(browserView: View, enabled: Boolean) {
+        if (enabled) {
+            browserImeInsetsViews += browserView
+        } else {
+            browserImeInsetsViews -= browserView
+        }
+
+        if (browserImeInsetsViews.isNotEmpty() && browserSoftInputMode == null) {
+            val softInputMode = window.attributes.softInputMode
+            browserSoftInputMode = softInputMode
+            window.setSoftInputMode(
+                (softInputMode and WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST.inv()) or
+                    WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING,
+            )
+        } else if (browserImeInsetsViews.isEmpty()) {
+            browserSoftInputMode?.let(window::setSoftInputMode)
+            browserSoftInputMode = null
+        }
+        ViewCompat.requestApplyInsets(binding.root)
+    }
 
     private val navHost by lazy {
         supportFragmentManager.findFragmentById(R.id.container) as NavHostFragment

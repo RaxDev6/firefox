@@ -2540,6 +2540,8 @@ abstract class BaseBrowserFragment :
      * Dereference these views when the fragment view is destroyed to prevent memory leaks
      */
     override fun onDestroyView() {
+        view?.let { (activity as? HomeActivity)?.setBrowserImeInsetsHandlingEnabled(it, false) }
+
         super.onDestroyView()
 
         // Diagnostic breadcrumb for "Display already aquired" crash:
@@ -2700,6 +2702,8 @@ abstract class BaseBrowserFragment :
 
     @Suppress("CognitiveComplexMethod")
     private fun setupIMEInsetsHandling(view: View) {
+        (activity as? HomeActivity)?.setBrowserImeInsetsHandlingEnabled(view, true)
+
         // Ensure that navigating to new webpages which triggers this handling being set again
         // would not leave the engine view with half set values from the previous animation.
         (view.layoutParams as? ViewGroup.MarginLayoutParams)?.bottomMargin = 0
